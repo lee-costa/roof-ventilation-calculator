@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roof Ventilation Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f5f4f0;
+      --color-background-tertiary: #eeece6;
+      --color-text-primary: #1a1a18;
+      --color-text-secondary: #5f5e5a;
+      --color-text-tertiary: #888780;
+      --color-border-tertiary: rgba(0,0,0,0.12);
+      --color-border-secondary: rgba(0,0,0,0.22);
+      --color-border-primary: rgba(0,0,0,0.35);
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-background-primary: #1e1e1c;
+        --color-background-secondary: #2a2a27;
+        --color-background-tertiary: #141412;
+        --color-text-primary: #f0ede6;
+        --color-text-secondary: #a8a69f;
+        --color-text-tertiary: #6e6d68;
+        --color-border-tertiary: rgba(255,255,255,0.1);
+        --color-border-secondary: rgba(255,255,255,0.18);
+        --color-border-primary: rgba(255,255,255,0.28);
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-background-tertiary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      background: var(--color-background-tertiary);
+      padding-bottom: 3rem;
+    }
+
+    .header {
+      background: var(--color-background-secondary);
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      padding: 1.25rem 1.25rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .header p {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .section { padding: 0 1.25rem 0; margin-bottom: 0.75rem; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .card {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.25rem;
+    }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .field-row { display: flex; align-items: center; gap: 8px; }
+
+    .field input[type="number"] {
+      flex: 1;
+      height: 38px;
+      padding: 0 10px;
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      font-size: 15px;
+      font-family: var(--font-sans);
+      color: var(--color-text-primary);
+      background: var(--color-background-primary);
+    }
+
+    .field input[type="number"]:focus {
+      outline: none;
+      border-color: #185FA5;
+      box-shadow: 0 0 0 2px rgba(55,138,221,0.15);
+    }
+
+    .unit {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+
+    .toggle-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    .toggle-btn {
+      height: 36px;
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      background: var(--color-background-primary);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .toggle-btn.active {
+      background: #185FA5;
+      border-color: #185FA5;
+      color: #E6F1FB;
+      font-weight: 500;
+    }
+
+    .results { padding: 0 1.25rem; margin-top: 0.75rem; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 0.875rem 1rem;
+    }
+
+    .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); line-height: 1; }
+    .metric-unit { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+
+    .status-card {
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.25rem;
+      border: 0.5px solid;
+    }
+
+    .status-card.ok { background: #EAF3DE; border-color: #3B6D11; }
+    .status-card.warn { background: #FAEEDA; border-color: #854F0B; }
+    .status-card.bad { background: #FCEBEB; border-color: #A32D2D; }
+
+    .status-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .status-card.ok .status-title { color: #27500A; }
+    .status-card.warn .status-title { color: #633806; }
+    .status-card.bad .status-title { color: #791F1F; }
+
+    .status-msg { font-size: 13px; line-height: 1.5; }
+    .status-card.ok .status-msg { color: #3B6D11; }
+    .status-card.warn .status-msg { color: #854F0B; }
+    .status-card.bad .status-msg { color: #A32D2D; }
+
+    .breakdown {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.25rem;
+      margin-top: 10px;
+    }
+
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      font-size: 13px;
+    }
+
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-label { color: var(--color-text-secondary); }
+    .breakdown-val { font-weight: 500; color: var(--color-text-primary); }
+
+    .bar-wrap {
+      height: 8px;
+      background: var(--color-background-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 50%;
+      background: #185FA5;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      line-height: 1.5;
+      margin-top: 7px;
+    }
+
+    .check-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      cursor: pointer;
+    }
+
+    .check-field:last-child { border-bottom: none; padding-bottom: 0; }
+    .check-field:first-child { padding-top: 0; }
+
+    .check-field input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      accent-color: #185FA5;
+      cursor: pointer;
+    }
+
+    .check-field-text { flex: 1; }
+
+    .check-field-label {
+      font-size: 13px;
+      color: var(--color-text-primary);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    .check-field-sub {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .ice-dam-note {
+      background: #E6F1FB;
+      border: 0.5px solid #185FA5;
+      border-radius: var(--border-radius-lg);
+      padding: 0.875rem 1.25rem;
+      margin-top: 10px;
+    }
+
+    .ice-dam-note-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #0C447C;
+      margin-bottom: 3px;
+    }
+
+    .ice-dam-note-msg {
+      font-size: 12px;
+      color: #185FA5;
+      line-height: 1.5;
+    }
+
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+
+    .product-btn {
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      background: var(--color-background-primary);
+      font-family: var(--font-sans);
+      cursor: pointer;
+      padding: 8px 10px;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .product-btn.active { background: #185FA5; border-color: #185FA5; }
+
+    .product-btn-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      display: block;
+      line-height: 1.3;
+    }
+
+    .product-btn.active .product-btn-name { color: #E6F1FB; }
+
+    .product-btn-nfa {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .product-btn.active .product-btn-nfa { color: #B5D4F4; }
+
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="header">
+      <h1>Roof ventilation</h1>
+      <p>Asphalt shingle · IRC 806 standard</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Attic footprint</div>
+      <div class="card">
+        <div class="field">
+          <label>Attic floor area</label>
+          <div class="field-row">
+            <input type="number" id="area" value="1500" min="100" max="10000" step="10" oninput="calc()">
+            <span class="unit">sq ft</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Vapor barrier</div>
+      <div class="card">
+        <div class="field">
+          <label>Does the attic have a Class I or II vapor barrier?</label>
+          <div class="toggle-row">
+            <button class="toggle-btn" id="btn-yes" onclick="setVapor(true)">Yes — 1/300 ratio</button>
+            <button class="toggle-btn active" id="btn-no" onclick="setVapor(false)">No — 1/150 ratio</button>
+          </div>
+          <p class="hint">A qualifying vapor barrier (e.g. poly sheeting or vapor-retarding paint on the warm side of the ceiling) allows the 1/300 ratio. A ridge + soffit system automatically satisfies the second IRC condition requiring 40–50% of ventilation from upper vents.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">CertainTeed 12" ridge vent · 18 sq in / LF</div>
+      <div class="card">
+        <div class="field">
+          <label>Available ridge length on this roof</label>
+          <div class="field-row">
+            <input type="number" id="ridgeLen" value="40" min="1" max="500" step="1" oninput="calc()">
+            <span class="unit">lin ft</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Intake vent product · 9 sq in / LF</div>
+      <div class="card">
+        <div class="field">
+          <label>Select product</label>
+          <div class="product-grid">
+            <button class="product-btn active" id="int-drip" onclick="setIntake('drip')">
+              <span class="product-btn-name">Vented drip edge</span>
+              <span class="product-btn-nfa">9 sq in / LF</span>
+            </button>
+            <button class="product-btn" id="int-ct" onclick="setIntake('ct')">
+              <span class="product-btn-name">CertainTeed intake vent</span>
+              <span class="product-btn-nfa">9 sq in / LF</span>
+            </button>
+          </div>
+          <label>Available eave / perimeter run</label>
+          <div class="field-row">
+            <input type="number" id="eaveLen" value="80" min="1" max="1000" step="1" oninput="calc()">
+            <span class="unit">lin ft</span>
+          </div>
+          <p class="hint" style="margin-top:7px;">Measure the total run of eave where intake vent will be installed. For a simple rectangular house, this is typically two long sides of the building.</p>
+        </div>
+      </div>
+    </div>
+      <div class="card">
+        <label class="check-field">
+          <input type="checkbox" id="chkBaffles" onchange="calc()">
+          <div class="check-field-text">
+            <div class="check-field-label">Baffles installed at every rafter bay</div>
+            <div class="check-field-sub">Required to keep blown-in or batt insulation from blocking the soffit opening. Without baffles, intake NFA is effectively zero.</div>
+          </div>
+        </label>
+        <label class="check-field">
+          <input type="checkbox" id="chkSoffitClear" onchange="calc()">
+          <div class="check-field-text">
+            <div class="check-field-label">Soffit vents are unobstructed</div>
+            <div class="check-field-sub">Verify vents are not painted over, clogged with debris, or covered by fascia.</div>
+          </div>
+        </label>
+        <label class="check-field">
+          <input type="checkbox" id="chkRidgeClear" onchange="calc()">
+          <div class="check-field-text">
+            <div class="check-field-label">Ridge slot cut to full width</div>
+            <div class="check-field-sub">Truss construction: cut a 1½" wide slot total. Ridge board construction: cut ¾" on each side of the board, clearing it. Both yield 1½" of free airflow (12" × 1.5" = 18 sq in NFA per LF). Undersized cuts reduce actual NFA regardless of vent length installed.</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="section-title">Results</div>
+      <div class="result-grid">
+        <div class="metric">
+          <div class="metric-label">Intake vent needed</div>
+          <div class="metric-value" id="intakeLFNeeded">—</div>
+          <div class="metric-unit">linear feet</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Ridge vent needed</div>
+          <div class="metric-value" id="ridgeLFNeeded">—</div>
+          <div class="metric-unit">linear feet</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Intake NFA required</div>
+          <div class="metric-value" id="intakeNFA">—</div>
+          <div class="metric-unit">sq in</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Exhaust NFA required</div>
+          <div class="metric-value" id="exhaustNFA">—</div>
+          <div class="metric-unit">sq in</div>
+        </div>
+      </div>
+
+      <div id="statusCard" class="status-card ok">
+        <div class="status-title" id="statusTitle">—</div>
+        <div class="status-msg" id="statusMsg">—</div>
+      </div>
+
+      <div id="iceDamNote" class="ice-dam-note" style="display:none;">
+        <div class="ice-dam-note-title">Ice dam risk — New England</div>
+        <div class="ice-dam-note-msg">Proper attic ventilation is the primary defense against ice dams. A cold, well-ventilated attic keeps the roof deck at uniform temperature, preventing the freeze-thaw cycle at the eaves. Confirm soffit conditions above are met — inadequate intake is the most common cause of ice dam problems even when ridge vent is correctly sized.</div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-row">
+          <span class="breakdown-label">Ventilation ratio used</span>
+          <span class="breakdown-val" id="ratioUsed">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Total NFA required</span>
+          <span class="breakdown-val" id="totalNFA">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Intake capacity at entered eave run</span>
+          <span class="breakdown-val" id="intakeCapacity">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Ridge capacity at entered length</span>
+          <span class="breakdown-val" id="ridgeCapacity">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Split</span>
+          <span class="breakdown-val">50% intake · 50% exhaust</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Attic area entered</span>
+          <span class="breakdown-val" id="areaOut">—</span>
+        </div>
+        <div style="margin-top: 10px;">
+          <div class="bar-label"><span>Intake</span><span>Exhaust</span></div>
+          <div class="bar-wrap"><div class="bar-fill" id="bar"></div></div>
+          <div class="bar-label" id="barNums"><span>—</span><span>—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let hasVapor = false;
+    let intakeProduct = 'drip';
+    const RIDGE_NFA_PER_LF = 18;
+    const INTAKE_NFA_PER_LF = 9;
+
+    function setVapor(v) {
+      hasVapor = v;
+      document.getElementById('btn-yes').classList.toggle('active', v);
+      document.getElementById('btn-no').classList.toggle('active', !v);
+      calc();
+    }
+
+    function setIntake(id) {
+      intakeProduct = id;
+      document.getElementById('int-drip').classList.toggle('active', id === 'drip');
+      document.getElementById('int-ct').classList.toggle('active', id === 'ct');
+      calc();
+    }
+
+    function calc() {
+      const area = parseFloat(document.getElementById('area').value) || 0;
+      const ridgeLen = parseFloat(document.getElementById('ridgeLen').value) || 0;
+      const eaveLen = parseFloat(document.getElementById('eaveLen').value) || 0;
+      const ratio = hasVapor ? 300 : 150;
+      const baffles = document.getElementById('chkBaffles').checked;
+      const soffitClear = document.getElementById('chkSoffitClear').checked;
+      const ridgeClear = document.getElementById('chkRidgeClear').checked;
+
+      const totalNFA = Math.ceil(area / ratio * 144);
+      const halfNFA = Math.ceil(totalNFA / 2);
+
+      const ridgeLFNeeded = Math.ceil(halfNFA / RIDGE_NFA_PER_LF);
+      const intakeLFNeeded = Math.ceil(halfNFA / INTAKE_NFA_PER_LF);
+      const ridgeCapacityNFA = Math.round(ridgeLen * RIDGE_NFA_PER_LF);
+      const intakeCapacityNFA = Math.round(eaveLen * INTAKE_NFA_PER_LF);
+      const ridgeSufficient = ridgeCapacityNFA >= halfNFA;
+      const intakeSufficient = intakeCapacityNFA >= halfNFA;
+
+      document.getElementById('totalNFA').textContent = totalNFA.toLocaleString() + ' sq in';
+      document.getElementById('intakeNFA').textContent = halfNFA.toLocaleString();
+      document.getElementById('exhaustNFA').textContent = halfNFA.toLocaleString();
+      document.getElementById('intakeLFNeeded').textContent = intakeLFNeeded;
+      document.getElementById('ridgeLFNeeded').textContent = ridgeLFNeeded;
+      document.getElementById('ratioUsed').textContent = '1 / ' + ratio;
+      document.getElementById('ridgeCapacity').textContent = ridgeCapacityNFA + ' sq in (' + (ridgeSufficient ? 'sufficient' : 'short') + ')';
+      document.getElementById('intakeCapacity').textContent = intakeCapacityNFA + ' sq in (' + (intakeSufficient ? 'sufficient' : 'short') + ')';
+      document.getElementById('areaOut').textContent = area.toLocaleString() + ' sq ft';
+      document.getElementById('barNums').innerHTML = '<span>' + halfNFA + ' sq in</span><span>' + halfNFA + ' sq in</span>';
+
+      const missingChecks = [];
+      if (!baffles) missingChecks.push('baffles not confirmed');
+      if (!soffitClear) missingChecks.push('soffit clearance not confirmed');
+      if (!ridgeClear) missingChecks.push('ridge slot not confirmed');
+
+      const sc = document.getElementById('statusCard');
+      const iceDam = document.getElementById('iceDamNote');
+      const intakeName = intakeProduct === 'drip' ? 'vented drip edge' : 'CertainTeed intake vent';
+
+      if (area < 100) {
+        sc.className = 'status-card warn';
+        document.getElementById('statusTitle').textContent = 'Check attic area';
+        document.getElementById('statusMsg').textContent = 'Area seems very small — double-check your measurement.';
+        iceDam.style.display = 'none';
+      } else if (!ridgeSufficient && !intakeSufficient) {
+        sc.className = 'status-card bad';
+        document.getElementById('statusTitle').textContent = 'Both sides short';
+        document.getElementById('statusMsg').textContent =
+          'Ridge: need ' + ridgeLFNeeded + ' LF, have ' + ridgeLen + ' LF. Intake: need ' + intakeLFNeeded + ' LF of ' + intakeName + ', have ' + eaveLen + ' LF. Both need to be addressed.';
+        iceDam.style.display = 'block';
+      } else if (!ridgeSufficient) {
+        sc.className = 'status-card bad';
+        document.getElementById('statusTitle').textContent = 'Ridge too short';
+        document.getElementById('statusMsg').textContent =
+          'Your ' + ridgeLen + ' LF of ridge provides ' + ridgeCapacityNFA + ' sq in — need ' + halfNFA + ' sq in. Minimum: ' + ridgeLFNeeded + ' LF. Consider supplemental box vents to make up the difference.';
+        iceDam.style.display = 'block';
+      } else if (!intakeSufficient) {
+        sc.className = 'status-card bad';
+        document.getElementById('statusTitle').textContent = 'Intake eave run too short';
+        document.getElementById('statusMsg').textContent =
+          'Your ' + eaveLen + ' LF of eave provides ' + intakeCapacityNFA + ' sq in intake NFA — need ' + halfNFA + ' sq in. You need at least ' + intakeLFNeeded + ' LF of ' + intakeName + '.';
+        iceDam.style.display = 'block';
+      } else if (missingChecks.length > 0) {
+        sc.className = 'status-card warn';
+        document.getElementById('statusTitle').textContent = 'Check site conditions';
+        document.getElementById('statusMsg').textContent =
+          'Numbers look good but confirm: ' + missingChecks.join(', ') + '. Unconfirmed site conditions can make correct calculations meaningless in the field.';
+        iceDam.style.display = 'block';
+      } else {
+        sc.className = 'status-card ok';
+        document.getElementById('statusTitle').textContent = 'Ventilation meets code';
+        document.getElementById('statusMsg').textContent =
+          ridgeLFNeeded + ' LF of CertainTeed 12" ridge vent + ' + intakeLFNeeded + ' LF of ' + intakeName + ' meets IRC 806. All site conditions confirmed.';
+        iceDam.style.display = 'block';
+      }
+    }
+
+    calc();
+  </script>
+</body>
+</html>
